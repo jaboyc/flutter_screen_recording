@@ -48,11 +48,13 @@ var myResult: FlutterResult?
 
     }else if(call.method == "stopRecordScreen"){
         if(videoWriter != nil){
-            stopRecording()
-            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
-            result(String(documentsPath.appendingPathComponent(nameVideo)))
-        }
+            stopRecording(completionHandler: { () -> Void in
+                let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+                result(String(documentsPath.appendingPathComponent(self.nameVideo)))
+                })
+        } else {
          result("")
+        }
     }
   }
     
@@ -167,7 +169,7 @@ var myResult: FlutterResult?
         }
     }
 
-    @objc func stopRecording() {
+    @objc func stopRecording(completionHandler: @escaping () -> Void) {
         //Stop Recording the screen
         if #available(iOS 11.0, *) {
             recorder.stopCapture( handler: { (error) in
@@ -184,10 +186,7 @@ var myResult: FlutterResult?
 
         self.videoWriter?.finishWriting {
             print("Finished writing video");
-            //Now save the video
-            PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: self.videoOutputURL!)
-            })
+            completionHandler();
         }
     
 }

@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_recording/flutter_screen_recording.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:quiver/async.dart';
 
 void main() => runApp(MyApp());
@@ -21,13 +19,7 @@ class _MyAppState extends State<MyApp> {
   int _time = 0;
 
   requestPermissions() async {
-    // await PermissionHandler().requestPermissions([
-    //   PermissionGroup.storage,
-    //   PermissionGroup.photos,
-    //   PermissionGroup.microphone,
-    // ]);
-
-    Map<Permission, PermissionStatus> statuses = await [
+    await [
       Permission.photos,
       Permission.storage,
       Permission.microphone,
@@ -70,55 +62,64 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Flutter Screen Recording'),
         ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('Time: $_time\n'),
-            !recording
-                ? Center(
-                    child: RaisedButton(
-                      child: Text("Record Screen"),
-                      onPressed: () => startScreenRecord(false),
-                    ),
-                  )
-                : Container(),
-            !recording
-                ? Center(
-                    child: RaisedButton(
-                      child: Text("Record Screen & audio"),
-                      onPressed: () => startScreenRecord(true),
-                    ),
-                  )
-                : Center(
-                    child: RaisedButton(
-                      child: Text("Stop Record"),
-                      onPressed: () => stopScreenRecord(),
-                    ),
-                  )
-          ],
+        body: Builder(
+          builder: (context) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text('Time: $_time\n'),
+                !recording
+                    ? Center(
+                        child: ElevatedButton(
+                          child: Text("Record Screen"),
+                          onPressed: () => startScreenRecord(context, audio: false),
+                        ),
+                      )
+                    : Container(),
+                !recording
+                    ? Center(
+                        child: ElevatedButton(
+                          child: Text("Record Screen & audio"),
+                          onPressed: () => startScreenRecord(context, audio: true),
+                        ),
+                      )
+                    : Center(
+                        child: ElevatedButton(
+                          child: Text("Stop Record"),
+                          onPressed: () => stopScreenRecord(),
+                        ),
+                      )
+              ],
+            );
+          }
         ),
       ),
     );
   }
 
-  startScreenRecord(bool audio) async {
+  startScreenRecord(BuildContext context, {bool audio}) async {
     bool start = false;
     await Future.delayed(const Duration(milliseconds: 1000));
 
+    final size = MediaQuery.of(context).size / 4;
+    final width = size.width.round();
+    final height = size.height.round();
+
     if (audio) {
       start = await FlutterScreenRecording.startRecordScreenAndAudio(
-          "Title" + _time.toString(),
-          titleNotification: "dsffad",
-          messageNotification: "sdffd");
+        "Title" + _time.toString(),
+        titleNotification: "dsffad",
+        messageNotification: "sdffd",
+        width: width,
+        height: height,
+      );
     } else {
-      int width, height;
-      // // Record screen at quarter size, ie file size reduced by x16
-      // Size win = window.physicalSize / 4; // Reduce size
-      // width = win.width ~/ 10 * 10; // Round to multiple of 10
-      // height = win.height ~/ 10 * 10;
-      start = await FlutterScreenRecording.startRecordScreen("Title",
-          width: width, height: height,
-          titleNotification: "dsffad", messageNotification: "sdffd",
+      start = await FlutterScreenRecording.startRecordScreen(
+        "Title",
+        width: width,
+        height: height,
+        titleNotification: "Notification Title",
+        messageNotification: "Notification Message",
       );
     }
 
